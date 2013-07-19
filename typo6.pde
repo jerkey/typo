@@ -25,14 +25,14 @@ char keyCaps[NUMKEYS] = {
 
 boolean keyState[NUMKEYS] = {
   false}; // state of keys being pressed or not
-byte pins2keys[NUMPINS][NUMPINS];
-boolean printReal=false;
+byte pins2keys[NUMPINS][NUMPINS]; // what key corresponds to what pin combination
+boolean printReal=false; // false means print "space", true means print " ", for example
 boolean shift = false;  // whether shift is down or not
 unsigned long pressed = 0;  // time last keypress down was detected    
 int lastPressed = 0;  // last key pressed
 unsigned long letGo = 0;  // time last a key was released    
-unsigned long flashPointer = 0;// (1 + NUMPINS * NUMPINS + NUMPINS + MAPOFFSET);  // pointer to where we should store typing data
-// STORED CONFIG DATA IS AFTER STORING char(69) AND pins2keys[] AND group[]
+unsigned long flashPointer = 0;// (1 + NUMPINS + NUMPINS * NUMPINS + MAPOFFSET);  // pointer to where we should store typing data
+// STORED CONFIG DATA IS AFTER STORING char(69) AND group[] AND pins2keys[] in that order
 // flashPointer is initialized by readMap()
 
 int i = 0;
@@ -105,7 +105,7 @@ void loop() {
           }
         }
         pinMode(pin[j],INPUT);
-      }
+      } // for (int j=0
     } //  while (i<=NUMKEYS) 
     i = 0;
     printGroups();
@@ -199,9 +199,9 @@ void saveMap() {
   if (flashPointer == 0) {
     EEPROM.write(flashPointer++,69); // signify that we have stored a map
     for (int ii = 0; ii <  NUMPINS; ii++) {
-      EEPROM.write(flashPointer++,group[ii]);
+      EEPROM.write(flashPointer++,group[ii]); // write group first!
       for (int jj = 0; jj <  NUMPINS; jj++) {
-        EEPROM.write(flashPointer++, pins2keys[ii][jj]);
+        EEPROM.write(flashPointer++, pins2keys[ii][jj]); // then write the matrix
       }
     }
   }
@@ -211,15 +211,16 @@ boolean readMap() {
   if (EEPROM.read(0) == 69) { // if a map is stored
     flashPointer++;  // only if we found it
     for (int ii = 0; ii <  NUMPINS; ii++) {
-      group[ii] = EEPROM.read(flashPointer++);
+      group[ii] = EEPROM.read(flashPointer++); // read group first!
       for (int jj = 0; jj <  NUMPINS; jj++) {
-        pins2keys[ii][jj] = EEPROM.read(flashPointer++);
+        pins2keys[ii][jj] = EEPROM.read(flashPointer++); // then read the matrix
       }
     }
-    return true;  // the map was found and read
-  } 
+    return true;  // the map was found and read and flashPointer is ready
+  } // if (EEPROM.read(0) == 69
   else return false;  // no map was found
-}
+} // readMap()
+
 /*  if (!groups_done()) {
  while (scan_for_groups());  
  }
@@ -343,4 +344,4 @@ boolean readMap() {
 
 
 
-
+  
