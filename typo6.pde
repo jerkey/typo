@@ -119,21 +119,22 @@ void loop() {
       pinMode(pin[j],OUTPUT);
       digitalWrite(pin[j],LOW); // these should instead all be set low before this loop
       for (int k=0; k <  NUMPINS; k++) {
-        p2k = pins2keys[j][k];
-	if ((p2k != NEITHER) && (!digitalRead(pin[k])) { // a key is down
+        int p2k = pins2keys[j][k];
+	if ((p2k != NEITHER) && (!digitalRead(pin[k]))) { // a key is down
           if ((!keyState[p2k]) && (millis() - letGo > debounceTime)) { // key has just been pressed
             pressed = millis();  // record the time this key was pressed down
             printKey(p2k);
             keyState[p2k] = true;            
           }
         } 
-      else { // key is up
-        if ((keyState[pins2keys[j][k]]) && (millis() - pressed > debounceTime)) { // key has just been released
-          keyState[pins2keys[j][k]] = false;
-          if (pins2keys[j][k] & 0xFE != SHIFTL) letGo = millis(); // don't set letGo if it's a shift key
+        else { // key is up
+          if ((keyState[pins2keys[j][k]]) && (millis() - pressed > debounceTime)) { // key has just been released
+            keyState[pins2keys[j][k]] = false;
+            if (pins2keys[j][k] & 0xFE != SHIFTL) letGo = millis(); // don't set letGo if it's a shift key
+          }
         }
       }
-      pinMode(pin[j],INPUT);
+    pinMode(pin[j],INPUT);
     }
   } // while(flashPointer < MAXFLASH)
   Serial.println("i never thought it would get to this point.");
