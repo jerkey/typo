@@ -35,6 +35,7 @@ unsigned long flashPointer = 0;// (1 + NUMPINS + NUMPINS * NUMPINS + MAPOFFSET);
 // STORED CONFIG DATA IS AFTER STORING char(69) AND group[] AND pins2keys[] in that order
 // flashPointer is initialized by readMap()
 
+char inByte = 0;  // incoming serial byte
 int i = 0;
 
 void setup() {
@@ -59,6 +60,7 @@ void setup() {
 
 void loop() {
   if (!readMap()) { // map was not found!  begin learning process
+    checkSerial();  // see if any serial commands have come in that we need to deal with
     Serial.println("Begin learning");  
     while (i<=NUMKEYS) { // stay in this loop until exited using i
       Serial.print("Press ");
@@ -66,6 +68,7 @@ void loop() {
       for (int j=0; j <  NUMPINS; j++) if (group[j]!=Y) {
         pinMode(pin[j],OUTPUT);
         digitalWrite(pin[j],LOW);
+        checkSerial();  // see if any serial commands have come in that we need to deal with
         for (int k=0; k <  NUMPINS; k++) if ((group[k]!=X) && (!digitalRead(pin[k])) && (j != k)) if ((pins2keys[j][k] == NEITHER) && (i < NUMKEYS)) {
           Serial.print(" Great!  pins ");
           Serial.print(pin[j]);
@@ -142,6 +145,28 @@ void loop() {
 
 void storeKey(char key) {
   EEPROM.write(flashPointer++,key);
+}
+
+void checkSerial() {
+  if (Serial.available() > 0) {
+    inByte = Serial.read();
+    switch (inByte | 32) {
+    case 's':
+      Serial.print("status: ");
+      break;
+    case 'r':
+      Serial.print("read: ");
+      break;
+    case 't':
+      Serial.print("table: ");
+      break;
+    case 'm':
+      Serial.print("map: ");
+      break;
+    default:
+      Serial.print("?");      
+    }
+  }
 }
 
 void printGroups() {
