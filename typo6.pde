@@ -27,7 +27,7 @@ boolean keyState[NUMKEYS] = {
   false}; // state of keys being pressed or not
 byte pins2keys[NUMPINS][NUMPINS]; // what key corresponds to what pin combination
 boolean printReal=false; // false means print "space", true means print " ", for example
-boolean shift = false;  // whether shift is down or not
+// boolean shift = false;  // whether shift is down or not
 unsigned long pressed = 0;  // time last keypress down was detected    
 int lastPressed = 0;  // last key pressed
 unsigned long letGo = 0;  // time last a key was released    
@@ -123,14 +123,15 @@ void loop() {
 	if ((p2k != NEITHER) && (!digitalRead(pin[k]))) { // a key is down
           if ((!keyState[p2k]) && (millis() - letGo > debounceTime)) { // key has just been pressed
             pressed = millis();  // record the time this key was pressed down
-            printKey(p2k);
-            keyState[p2k] = true;            
-          }
+            Serial.print(printKey(p2k));  //  THIS IS WHERE THE MAGIC HAPPENS and the key is printed/recorded
+	    // this is where storeKey(printKey(p2k)) gets called
+            keyState[p2k] = true;
+          }  // if key had just been pressed
         } 
         else { // key is up
-          if ((keyState[pins2keys[j][k]]) && (millis() - pressed > debounceTime)) { // key has just been released
-            keyState[pins2keys[j][k]] = false;
-            if (pins2keys[j][k] & 0xFE != SHIFTL) letGo = millis(); // don't set letGo if it's a shift key
+          if ((keyState[p2k]) && (millis() - pressed > debounceTime)) { // key has just been released
+            keyState[p2k] = false;
+            if (p2k & 0xFE != SHIFTL) letGo = millis(); // don't set letGo if it's a shift key
           }
         }
       }
@@ -185,13 +186,11 @@ char printKey(int whichKey) {
     }
   } 
   else { // printReal == true
-    if (!shift) {
-      Serial.print(key[whichKey]);      
-      return key[whichKey];
+    if (keyState[SHIFTL] || keyState[SHIFTR]) {
+      return keyCaps[whichKey];
     } 
     else {
-      Serial.print(keyCaps[whichKey]);      
-      return keyCaps[whichKey];
+      return key[whichKey];
     }
   }
 }
