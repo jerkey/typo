@@ -60,9 +60,9 @@ void setup() {
 void loop() {
   if (!readMap()) { // map was not found!  begin learning process
     Serial.println("Begin learning");  
-    Serial.print("Press ");
-    printKey(i);
     while (i<=NUMKEYS) { // stay in this loop until exited using i
+      Serial.print("Press ");
+      printKey(i);
       for (int j=0; j <  NUMPINS; j++) if (group[j]!=Y) {
         pinMode(pin[j],OUTPUT);
         digitalWrite(pin[j],LOW);
@@ -71,12 +71,10 @@ void loop() {
           Serial.print(pin[j]);
           Serial.print(" and ");
           Serial.print(pin[k]);
-          printGroups();
           group[j]=X;
           group[k]=Y;
-          pins2keys[j][k]=i;
-          Serial.print("Press ");
-          printKey(++i);
+          printGroups();
+          pins2keys[j][k]=i++;  // increment i for the next round
           if (i==NUMKEYS) {  // all keys have been programmed into map
             printReal=true;  // print a space instead of "spacebar" etc
             Serial.println("press 1 to save map to nonvolatile, 2 to restart programming, or 3 to typo without saving map.");  
