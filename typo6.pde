@@ -79,17 +79,14 @@ void loop() {
 	    group[k]=Y;
 	    printGroups();
 	    pins2keys[j][k]=i++;  // increment i for the next round
-	    if (i==NUMKEYS) {  // all keys have been programmed into map
-	      printReal=true;  // print a space instead of "spacebar" etc
-	      Serial.println("press 1 to save map to nonvolatile, 2 to restart programming, or 3 to typo without saving map.");
-	    }
 	  }
 	  else { // a key is pressed that we already know
 	    if (lastPressed != pins2keys[j][k]) {  // if it's the first time for this key
 	      char thisKey = printKey(pins2keys[j][k]);  // the character belonging to the key pressed
 	      Serial.print(thisKey);  // print the character once
               lastPressed = pins2keys[j][k];  // so we know we've done this one, since theres no debounce yet
-	      if (i==NUMKEYS) {
+	      if (i==NUMKEYS) {  // all keys have been programmed into map
+                printReal=true;  // print a space instead of "spacebar" etc
                 if (thisKey == '1') {  // user pressed 1
                   saveMap();  // lets save the map to nonvolatile
                   Serial.print("flashPointer = ");
@@ -98,14 +95,15 @@ void loop() {
                   i = NUMKEYS + 1;  // this is how we exit the while loop
                   Serial.println("saved map to nonvolatile, now exit to typo.");
                 }
-                if (thisKey == '2') { // start the whole learning process over
+                else if (thisKey == '2') { // start the whole learning process over
                   i = 0;
                   Serial.println("restart learning process.");
                 }
-                if (thisKey == '3') { // exit to typo without saving map
+                else if (thisKey == '3') { // exit to typo without saving map
                   i = NUMKEYS + 1;
                   Serial.println("exit to typo without saving map.");
                 }
+                else Serial.println("press 1 to save map to nonvolatile, 2 to restart programming, or 3 to typo without saving map.");
               }
 	    }
 	  }
