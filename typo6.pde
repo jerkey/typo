@@ -114,19 +114,19 @@ void loop() {
   Serial.print("flashPointer = ");    
   Serial.println(flashPointer);
 
-  while(flashPointer < MAXFLASH) {
+  while(flashPointer < MAXFLASH) {  // main program loop, watching for keystrokes and recording them
     for (int j=0; j <  NUMPINS; j++) if (group[j]==X) {
       pinMode(pin[j],OUTPUT);
-      digitalWrite(pin[j],LOW);
+      digitalWrite(pin[j],LOW); // these should instead all be set low before this loop
       for (int k=0; k <  NUMPINS; k++) {
         p2k = pins2keys[j][k];
-        if ((pins2keys[j][k] != NEITHER) && (group[k]==Y)) if (!digitalRead(pin[k])) { // key is down
-        if ((!keyState[p2k]) && (millis() - letGo > debounceTime)) { // key has just been pressed
-          pressed = millis();  // record the time this key was pressed down
-          printKey(pins2keys[j][k]);
-          keyState[pins2keys[j][k]] = true;            
-        }
-      } 
+	if ((p2k != NEITHER) && (!digitalRead(pin[k])) { // a key is down
+          if ((!keyState[p2k]) && (millis() - letGo > debounceTime)) { // key has just been pressed
+            pressed = millis();  // record the time this key was pressed down
+            printKey(p2k);
+            keyState[p2k] = true;            
+          }
+        } 
       else { // key is up
         if ((keyState[pins2keys[j][k]]) && (millis() - pressed > debounceTime)) { // key has just been released
           keyState[pins2keys[j][k]] = false;
