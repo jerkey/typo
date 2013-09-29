@@ -64,55 +64,59 @@ void loop() {
     Serial.println("Begin learning");  
     while (i<=NUMKEYS) { // stay in this loop until exited using i
       Serial.print("Press ");
-      printKey(i);
+      Serial.print(printKey(i));
       for (int j=0; j <  NUMPINS; j++) if (group[j]!=Y) {
         pinMode(pin[j],OUTPUT);
         digitalWrite(pin[j],LOW);
         checkSerial();  // see if any serial commands have come in that we need to deal with
-        for (int k=0; k <  NUMPINS; k++) if ((group[k]!=X) && (!digitalRead(pin[k])) && (j != k)) if ((pins2keys[j][k] == NEITHER) && (i < NUMKEYS)) {
-          Serial.print(" Great!  pins ");
-          Serial.print(pin[j]);
-          Serial.print(" and ");
-          Serial.print(pin[k]);
-          group[j]=X;
-          group[k]=Y;
-          printGroups();
-          pins2keys[j][k]=i++;  // increment i for the next round
-          if (i==NUMKEYS) {  // all keys have been programmed into map
-            printReal=true;  // print a space instead of "spacebar" etc
-            Serial.println("press 1 to save map to nonvolatile, 2 to restart programming, or 3 to typo without saving map.");  
-          }
-        }
-        else {
-          if (lastPressed != pins2keys[j][k]) {
-            printKey(pins2keys[j][k]);
-            lastPressed = pins2keys[j][k];
-            if (lastPressed == '1') { // lets save the map to nonvolatile
-              saveMap();
-              Serial.print("flashPointer = ");    
-              Serial.println(flashPointer);
-              flashPointer = 0;
-              i = NUMKEYS + 1;            
-              Serial.println("saved map to nonvolatile, now exit to typo.");  
-            }
-            if (lastPressed == '2') { // start the whole learning process over
-              i = 0;
-              Serial.println("restart learning process.");                
-            }
-            if (lastPressed == '3') { // exit to typo without saving map
-              i = NUMKEYS + 1;
-              Serial.println("exit to typo without saving map.");  
-            }
-          }
-        }
+        for (int k=0; k <  NUMPINS; k++) if ((group[k]!=X) && (!digitalRead(pin[k])) && (j != k)) // if a key is pressed
+	  if ((pins2keys[j][k] == NEITHER) && (i < NUMKEYS)) {  // if the key pressed is a new one AND (i < NUMKEYS)
+	    Serial.print(" Great!  pins ");
+	    Serial.print(pin[j]);
+	    Serial.print(" and ");
+	    Serial.print(pin[k]);
+	    group[j]=X;
+	    group[k]=Y;
+	    printGroups();
+	    pins2keys[j][k]=i++;  // increment i for the next round
+	    if (i==NUMKEYS) {  // all keys have been programmed into map
+	      printReal=true;  // print a space instead of "spacebar" etc
+	      Serial.println("press 1 to save map to nonvolatile, 2 to restart programming, or 3 to typo without saving map.");
+	    }
+	  }
+	  else { // a key is pressed that we already know
+	    if (lastPressed != pins2keys[j][k]) {  // if it's the first time for this key
+	      char thisKey = printKey(pins2keys[j][k]);  // the character belonging to the key pressed
+	      Serial.print(thisKey);  // print the character once
+              lastPressed = pins2keys[j][k];  // so we know we've done this one, since theres no debounce yet
+	      if (i==NUMKEYS) {
+                if (thisKey == '1') {  // user pressed 1
+                  saveMap();  // lets save the map to nonvolatile
+                  Serial.print("flashPointer = ");
+                  Serial.println(flashPointer);
+                  flashPointer = 0;  // WHY ARE WE DOING THIS?
+                  i = NUMKEYS + 1;  // this is how we exit the while loop
+                  Serial.println("saved map to nonvolatile, now exit to typo.");
+                }
+                if (thisKey == '2') { // start the whole learning process over
+                  i = 0;
+                  Serial.println("restart learning process.");
+                }
+                if (thisKey == '3') { // exit to typo without saving map
+                  i = NUMKEYS + 1;
+                  Serial.println("exit to typo without saving map.");
+                }
+              }
+	    }
+	  }
         pinMode(pin[j],INPUT);
       } // for (int j=0
-    } //  while (i<=NUMKEYS) 
+    } //  while (i<=NUMKEYS)
     i = 0;
     printGroups();
-  }  //  if (!readMap()) 
+  }  //  if (!readMap())
   while ((EEPROM.read(flashPointer) != 0) && (flashPointer < MAXFLASH)) flashPointer++;  // find the beginning of empty space
-  Serial.print("flashPointer = ");    
+  Serial.print("flashPointer = ");
   Serial.println(flashPointer);
 
   while(flashPointer < MAXFLASH) {  // main program loop, watching for keystrokes and recording them
