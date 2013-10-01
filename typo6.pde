@@ -4,10 +4,10 @@
 #define X 1
 #define Y 2
 #define NEITHER -1
-#define MOST_PRESSED 2 // number of keys which can be pressed at once
+// #define MOST_PRESSED 2 // number of keys which can be pressed at once
 #define SHIFTL 6 // byte code for SHIFTL is SHIFTR & 0xFE
 #define SHIFTR 7
-#define debounceTime 75 // number of milliseconds since last press or release when opposite is accepted
+#define DEBOUNCETIME 75 // number of milliseconds since last press or release when opposite is accepted
 
 #include <EEPROM.h>
 
@@ -62,9 +62,9 @@ void loop() {
   if (!readMap()) { // map was not found!  begin learning process
     checkSerial();  // see if any serial commands have come in that we need to deal with
     Serial.println("Begin learning");  
+    Serial.print("Press ");  // prompt for the first key to learn
+    Serial.print(printKey(i));
     while (i<=NUMKEYS) { // stay in this loop until exited using i
-      Serial.print("Press ");
-      Serial.print(printKey(i));
       for (int j=0; j <  NUMPINS; j++) if (group[j]!=Y) {
         pinMode(pin[j],OUTPUT);
         digitalWrite(pin[j],LOW);
@@ -79,6 +79,8 @@ void loop() {
 	    group[k]=Y;
 	    printGroups();
 	    pins2keys[j][k]=i++;  // increment i for the next round
+            Serial.print("Press ");  // prompt for the next key to learn
+            Serial.print(printKey(i));
 	  }
 	  else { // a key is pressed that we already know
 	    if (lastPressed != pins2keys[j][k]) {  // if it's the first time for this key
@@ -124,7 +126,7 @@ void loop() {
       for (int k=0; k <  NUMPINS; k++) {
         int p2k = pins2keys[j][k];
 	if ((p2k != NEITHER) && (!digitalRead(pin[k]))) { // a key is down
-          if ((!keyState[p2k]) && (millis() - letGo > debounceTime)) { // key has just been pressed
+          if ((!keyState[p2k]) && (millis() - letGo > DEBOUNCETIME)) { // key has just been pressed
             pressed = millis();  // record the time this key was pressed down
             Serial.print(printKey(p2k));  //  THIS IS WHERE THE MAGIC HAPPENS and the key is printed/recorded
 	    // this is where storeKey(printKey(p2k)) gets called
@@ -132,7 +134,7 @@ void loop() {
           }  // if key had just been pressed
         } 
         else { // key is up
-          if ((keyState[p2k]) && (millis() - pressed > debounceTime)) { // key has just been released
+          if ((keyState[p2k]) && (millis() - pressed > DEBOUNCETIME)) { // key has just been released
             keyState[p2k] = false;
             if (p2k & 0xFE != SHIFTL) letGo = millis(); // don't set letGo if it's a shift key
           }
