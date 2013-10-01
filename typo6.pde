@@ -155,20 +155,31 @@ void checkSerial() {
   if (Serial.available() > 0) {
     inByte = Serial.read();
     switch (inByte | 32) {
-    case 's':
-      Serial.print("status: ");
+    case 'f':
+      Serial.print("flashPointer: ");
+      Serial.println(flashPointer);
       break;
     case 'r':
-      Serial.print("read: ");
+      Serial.println("read table from RAM:");
+      printGroups();  // better be ready to digest it
       break;
-    case 't':
-      Serial.print("table: ");
+    case 'w':
+      Serial.print("please send table data!");
       break;
-    case 'm':
-      Serial.print("map: ");
+    case 'l': {  // brackets necessary because of storeFP declaration
+      Serial.print("load table into RAM: ");
+      unsigned long storeFP = flashPointer;  // store the value
+      flashPointer = 0;  // so that readMap works
+      if (readMap()) Serial.println("successfully readMap from Flash.");
+        else Serial.println("Map not found in Flash.");
+      flashPointer = storeFP;  // restore flashPointer 
+      break; }
+    case 's':
+      Serial.println("saved RAM to FLASH.");
+      saveMap();
       break;
     default:
-      Serial.print("?");      
+      Serial.println("(F)lashpointer report, (R)ead RAM out to serial, (W)rite serial to RAM, (L)oad FLASH into RAM, (S)ave RAM to FLASH");      
     }
   }
 }
@@ -184,7 +195,7 @@ void printGroups() {
     Serial.print(pin[i]);
     Serial.print(" ");
   }
-  Serial.println();  
+  Serial.println("end groups");  
 }
 
 char printKey(int whichKey) {
