@@ -186,12 +186,12 @@ void checkSerial() {
 
 void printGroups() {
   Serial.print("  X= ");
-  for (int i = 0; i < NUMKEYS; i++) if (group[i]==X) {
+  for (int i = 0; i < NUMPINS; i++) if (group[i]==X) {
     Serial.print(pin[i]);
     Serial.print(" ");
   }
   Serial.print("Y= ");
-  for (int i = 0; i < NUMKEYS; i++) if (group[i]==Y) {
+  for (int i = 0; i < NUMPINS; i++) if (group[i]==Y) {
     Serial.print(pin[i]);
     Serial.print(" ");
   }
