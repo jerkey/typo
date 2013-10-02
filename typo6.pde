@@ -164,7 +164,9 @@ void checkSerial() {
       printGroups();  // better be ready to digest it
       break;
     case 'w':
-      Serial.print("please send table data!");
+      Serial.println("Write from serial to RAM: waiting for table data! (send . to end)");
+      Serial.print(readGroups());
+      Serial.println(" reported group records (X + Y*100)");
       break;
     case 'l': {  // brackets necessary because of storeFP declaration
       Serial.print("load table into RAM: ");
@@ -195,7 +197,53 @@ void printGroups() {
     Serial.print(pin[i]);
     Serial.print(" ");
   }
-  Serial.println("end groups");  
+  Serial.println("end groups.");  
+}
+
+#define MAXDIGITS 5  // for reading in numbers in decimal from serial port
+int readGroups() {  // this is a blocking function.  It exits when it sees a period '.'
+  char valueString[MAXDIGITS];   //  this is where we store numbers we read from serial port
+  int index = 0;  // placeholder for valueString
+  int valueInt;  // this is where we put the put the actual integer we received
+  int pinCount = 0;  // the value we return with, which reports X + 100*Y counted
+  for (int i = 0; i < NUMPINS; i++) group[i] = NEITHER;  // clear the groups' RAM buffer before importing values
+  while (inByte != '.' && inByte != 'Y') {  // we are going to get X list first
+    inByte = Serial.read();  // read the next byte which might be a digit
+    while (inByte >= 0x30 && inByte <= 0x39 && index < MAXDIGITS) {
+      valueString[index++] = inByte;  // grab the digit
+      inByte = Serial.read();  // read the next byte which might be a digit
+    }
+    if (index) {  // if we just grabbed a sequence of digits
+      valueString[index] = 0;  // terminate the string with a 0 for atoi()
+      valueInt = atoi(valueString);  // translate the string to an integer
+      for (int i = 0; i < NUMPINS; i++) {  // search the pin[] index for a match
+        if (pin[i] == valueInt) { // match pin numbers to index
+          group[i] = X;  // set the pin[] number to group X
+          pinCount += 1;  // since we successfully imported an X pin
+        }
+      }
+      index = 0;  // we're done with the string, we can get another one now
+    }
+  }
+  if (inByte == 'Y') while (inByte != '.') {  // we will now get the Y list
+    inByte = Serial.read();  // read the next byte which might be a digit
+    while (inByte >= 0x30 && inByte <= 0x39 && index < MAXDIGITS) {
+      valueString[index++] = inByte;  // grab the digit
+      inByte = Serial.read();  // read the next byte which might be a digit
+    }
+    if (index) {  // if we just grabbed a sequence of digits
+      valueString[index] = 0;  // terminate the string with a 0 for atoi()
+      valueInt = atoi(valueString);  // translate the string to an integer
+      for (int i = 0; i < NUMPINS; i++) {  // search the pin[] index for a match
+        if (pin[i] == valueInt) { // match pin numbers to index
+          group[i] = X;  // set the pin[] number to group Y
+          pinCount += 100;  // since we successfully imported an Y pin
+        }
+      }
+      index = 0;  // we're done with the string, we can get another one now
+    }
+  }
+  return pinCount;
 }
 
 char printKey(int whichKey) {
